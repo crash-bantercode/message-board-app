@@ -8,15 +8,15 @@
 <div class="container">
     <br>
     <div class="jumbotron">
-        <h1 class="display-4">Send Message</h1>
+        <h1 class="display-4">Message Board</h1>
         <br>
         <input id="name" class="form-control" placeholder="Name">
         <br>
-        <textarea id="message" class="form-control" placeholder="Enter message..."></textarea>
+        <textarea id="message" class="form-control" placeholder="Enter message... *celery* is a forbidden word"></textarea>
         <br>
         <button id="send" class="btn btn-success">Send</button>
     </div>
-    <div id="messages">
+    <div id="messages" style="overflow:auto; height:400px;">
 
     </div>
 </div>
@@ -35,6 +35,7 @@
 
     function addMessage(message) {
         $("#messages").append(`<h4> ${message.name} </h4> <p> ${message.message} </p>`)
+        scrollBottom()
     }
 
     function getMessages() {
@@ -45,5 +46,11 @@
 
     function postMessage(message) {
         $.post('http://localhost:3000/messages', message)
+    }
+
+    function scrollBottom() {
+        var messages = document.getElementById("messages")
+        console.log(messages)
+        messages.scrollTop = messages.scrollHeight
     }
 </script>

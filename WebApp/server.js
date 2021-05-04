@@ -6,7 +6,9 @@ var mongoose = require('mongoose')
 
 app.use(express.static(__dirname))
 app.use(express.json())
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({ extended: false }))
+
+mongoose.Promise = Promise
 
 var dbUrl = 'mongodb+srv://beany:beany@cluster-bean.ty5mc.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 
@@ -21,28 +23,39 @@ app.get('/messages', (req, res) => {
     })
 })
 
-app.post('/messages', (req, res) => {
-    var message = new Message(req.body)    
-    message.save().then(() => {
-        Message.findOne({message: "fuck"}, (err, censored) => {
-            if (censored)
-                console.log("Found censored word.")
-                Message.remove({_id: censored.id}, (err) => {
-                    console.log("Removed censored word.")
-                })
-        })
-        io.emit('message', req.body)
+app.post('/messages', async (req, res) => {
+
+    try {
+        var message = new Message(req.body)
+        var savedMessage = await message.save()
+
+        console.log('saved.')
+        var censored = await Message.findOne({ message: 'celery' })
+
+        if (censored) {
+            await Message.deleteOne({ _id: censored.id })
+        } else {
+            io.emit('message', req.body)
+        }
+
         res.sendStatus(200)
-    }).catch((err) => {
+    } catch (error) {
         res.sendStatus(500)
-    })
+        return console.error(error)
+    } finally {
+        console.log('Message posted.')
+    }
+
+
+
+
 })
 
 io.on('connection', (socket) => {
     console.log('User connected.')
 })
 
-mongoose.connect(dbUrl, {useNewUrlParser: true, useUnifiedTopology: true}, (err) => {
+mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     console.log('MongoDB connection.', err)
 })
 
